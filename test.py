@@ -41,8 +41,6 @@ class DataTrader(Strategy):
         self.rsi = self.I(ta.momentum.rsi, pd.Series(close), window=rsiLength)
 
         ma_func = ta.trend.sma_indicator if sma_source == "SMA" else ta.trend.ema_indicator
-        fast_ma = self.I(ma_func, pd.Series(close), window=fast_length)
-        slow_ma = self.I(ma_func, pd.Series(close), window=slow_length)
 
         macd_func = lambda x: ma_func(close=x, window=fast_length) - ma_func(close=x, window=slow_length)
         self.macd = self.I(macd_func, pd.Series(close))
