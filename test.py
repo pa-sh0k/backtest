@@ -1,7 +1,7 @@
 import pandas as pd
 import ta
 from backtesting import Backtest, Strategy
-from backtesting.lib import crossover, resample_apply
+from backtesting.lib import crossover
 
 from binance import Client
 from config import *
@@ -39,9 +39,6 @@ class DataTrader(Strategy):
         self.slowema_other_tf_long = self.I(ema_other_tf, four_hours, window=slowema_long)
 
         self.rsi = self.I(ta.momentum.rsi, pd.Series(close), window=rsiLength)
-
-        # self.macd = self.I(ta.trend.macd, pd.Series(close), window_fast=fast_length, window_slow=slow_length)
-        # self.macd_signal = self.I(ta.trend.macd_signal, pd.Series(close), window_fast=fast_length, window_slow=slow_length, window_sign=signal_length)
 
         ma_func = ta.trend.sma_indicator if sma_source == "SMA" else ta.trend.ema_indicator
         fast_ma = self.I(ma_func, pd.Series(close), window=fast_length)

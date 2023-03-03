@@ -21,7 +21,7 @@ initial_capital = 100000
 order_size = 0.5  # 50% of capital
 commission = 0.0005  # 0.5%
 
-tf = "1H"
+tf = "1h"
 
 ema_tf = "4H"
 

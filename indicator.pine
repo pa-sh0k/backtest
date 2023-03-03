@@ -1,0 +1,43 @@
+//@version=5
+strategy("Trend strategy volume1", overlay=true, pyramiding=0, calc_on_every_tick=true, default_qty_type=strategy.percent_of_equity, default_qty_value=50, initial_capital=10000, currency='USD', commission_value=0.05, calc_on_order_fills = true, close_entries_rule = "ANY")
+
+//ATR
+atr = ta.atr(7)
+
+//EMA
+fastema_long = input.int(11, title="Fast EMA 4H", minval=1, group="EMA 4H long")
+slowema_long = input.int(13, title="Slow EMA 4H", minval=1, group="EMA 4H long")
+fastema_240_long = request.security("BTCUSDT", "240", ta.ema(close, fastema_long))
+slowema_240_long = request.security("BTCUSDT", "240", ta.ema(close, slowema_long))
+
+plot(fastema_240_long, color = color.orange)
+plot(slowema_240_long, color = color.blue)
+
+//RSI
+rsiSource = input(title="RSI source", defval=close, group="RSI")
+rsiLength = input.int(title="RSI length", defval=7, group="RSI")
+rsi = ta.rsi(rsiSource, rsiLength)
+
+//MACD
+macdSource = input(title="Source", defval=close, group="MACD")
+fast_length = input(title="Fast Length", defval=9, group="MACD")
+slow_length = input(title="Slow Length", defval=26, group="MACD")
+signal_length = input.int(title="Signal Smoothing", defval =6, group="MACD")
+
+sma_source = input.string(title="Oscillator MA Type",  defval="EMA", options=["SMA", "EMA"], group="MACD")
+sma_signal = input.string(title="Signal Line MA Type", defval="EMA", options=["SMA", "EMA"], group="MACD")
+
+fast_ma = sma_source == "SMA" ? ta.sma(macdSource, fast_length) : ta.ema(macdSource, fast_length)
+slow_ma = sma_source == "SMA" ? ta.sma(macdSource, slow_length) : ta.ema(macdSource, slow_length)
+
+macd = fast_ma - slow_ma
+signal = sma_signal == "SMA" ? ta.sma(macd, signal_length) : ta.ema(macd, signal_length)
+
+//ATR exit inputs
+atrTakeMultiplierLong = input.float(title="Long atr take (%)", minval=0.0, step=0.01, defval=2.8, group = "Risk mgmt atr")
+atrStopMultiplierLong = input.float(title="Long atr stop (%)", minval=0.0, step=0.01, defval=2.55, group = "Risk mgmt atr")
+
+//Strategy conditions with atr exits
+if (close > fastema_240_long and fastema_240_long > slowema_240_long and ta.crossunder(macd, signal) and strategy.opentrades <= 0)
+    strategy.order("Enter Long", strategy.long)
+    strategy.exit("Exit Long", from_entry="Enter Long", limit = close + atr * atrTakeMultiplierLong, stop = close - atr * atrStopMultiplierLong)
